@@ -130,7 +130,7 @@ class TDBMDaoGenerator {
         if ($connection instanceof CachedConnection){
             $connection->cacheService->purgeAll();
         }
-		
+
 		$this->generateBean($beanName.".php", $beanName, $baseBeanName.".php", $baseBeanName, $tableName);
 		$this->generateDao($daoName.".php", $daoName."Base.php", $beanName.".php", $daoName, $daoName."Base", $beanName, $tableName);
 	}
@@ -387,7 +387,7 @@ class $baseClassName extends TDBMObject
 		
 		$str .= "}
 ?>";
-		
+
 		file_put_contents($this->beanDirectory.$baseFileName, $str);
 		@chmod($this->beanDirectory.$baseFileName, 0664);
 

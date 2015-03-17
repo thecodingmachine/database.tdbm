@@ -20,9 +20,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 namespace Mouf\Database\TDBM;
 
 use Mouf\Database\DBConnection\MySqlConnection;
+use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Utils\Cache\NoCache;
-use Mouf\Database\TDBM\Filters\EqualFilter;
-use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 // Require needed if we run this class directly
 if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
@@ -35,8 +34,12 @@ if (file_exists(__DIR__.'/../../../../../../autoload.php')) {
  */
 class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
 
+    /** @var MySqlConnection $dbConnection */
     protected $dbConnection;
+    /** @var TDBMService $tdbmService */
     protected $tdbmService;
+    /** @var TDBMDaoGenerator $tdbmDaoGenerator */
+    protected $tdbmDaoGenerator;
 
     protected function setUp() {
 
@@ -61,6 +64,8 @@ class TDBMAbsctractServiceTest extends \PHPUnit_Framework_TestCase {
         $this->tdbmService = new TDBMService();
         $this->tdbmService->dbConnection = $this->dbConnection;
         $this->tdbmService->cacheService = new NoCache();
+
+        $this->tdbmDaoGenerator = new TDBMDaoGenerator($this->dbConnection);
     }
 
     static function main() {
