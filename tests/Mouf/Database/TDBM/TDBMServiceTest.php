@@ -19,8 +19,6 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 namespace Mouf\Database\TDBM;
 
-use Mouf\Database\DBConnection\MySqlConnection;
-use Mouf\Utils\Cache\NoCache;
 use Mouf\Database\TDBM\Filters\EqualFilter;
 use Mouf\Database\TDBM\Filters\OrderByColumn;
 
