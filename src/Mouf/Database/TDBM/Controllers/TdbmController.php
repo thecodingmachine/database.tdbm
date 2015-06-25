@@ -142,7 +142,7 @@ class TdbmController extends AbstractMoufInstanceController {
 		
 		
 		$url = MoufReflectionProxy::getLocalUrlToProject()."../database.tdbm/src/generateDaos.php?name=".urlencode($name)."&selfedit=".$selfedit."&sourcedirectory=".urlencode($sourcedirectory)."&daofactoryclassname=".urlencode($daofactoryclassname)."&daonamespace=".urlencode($daonamespace)."&beannamespace=".urlencode($beannamespace)."&support=".urlencode($keepSupport)."&storeInUtc=".urlencode($storeInUtc);
-		$response = self::performRequest($url);
+		$response = MoufReflectionProxy::performRequest($url);
 		
 		/*if (trim($response) != "") {
 			throw new Exception($response);
@@ -172,24 +172,5 @@ class TdbmController extends AbstractMoufInstanceController {
 		
 		$moufManager->rewriteMouf();
 	}
-	
-	private static function performRequest($url) {
-		// preparation de l'envoi
-		$ch = curl_init();
-				
-		curl_setopt( $ch, CURLOPT_URL, $url);
-		
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, TRUE );
-		curl_setopt( $ch, CURLOPT_POST, FALSE );
-		
-		if( curl_error($ch) ) { 
-			throw new Exception("TODO: texte de l'erreur curl");
-		} else {
-			$response = curl_exec( $ch );
-		}
-		curl_close( $ch );
-		
-		return $response;
-	}
-	
+
 }
