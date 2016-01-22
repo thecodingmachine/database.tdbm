@@ -24,6 +24,7 @@
         <var name="db_password" value="" />
         <var name="db_name" value="tdbm_testcase" />
         <var name="db_port" value="3306"/>
+        <var name="db_driver" value="pdo_mysql"/>
     </php>
     
     <filter>
@@ -31,8 +32,12 @@
     		<directory suffix=".php">src/Mouf</directory>
     		<exclude>
       			<directory suffix=".php">src/Mouf/Database/TDBM/Controllers</directory>
-                <file>/tests/Mouf/Database/TDBM/TDBMAbscractServiceTest.php</file>
+                <directory suffix=".php">src/Mouf/Database/TDBM/Test</directory>
     		</exclude>
   		</whitelist>
 	</filter>
+    <logging>
+        <log type="coverage-html" target="build/coverage" charset="UTF-8" yui="true" highlight="true"/>
+        <log type="coverage-clover" target="build/logs/clover.xml"/>
+    </logging>
 </phpunit>

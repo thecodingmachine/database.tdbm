@@ -17,23 +17,31 @@ along with this program; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-namespace Mouf\Database\TDBM\Filters;
+namespace Mouf\Database\TDBM;
 
-use Mouf\Database\DBConnection\MySqlConnection;
-use Mouf\Database\TDBM\TDBMAbstractServiceTest;
 use Mouf\Utils\Cache\NoCache;
+use Mouf\Database\TDBM\Filters\EqualFilter;
+use Mouf\Database\TDBM\Filters\OrderByColumn;
 
 /**
  */
-class SqlStringFilterTest extends TDBMAbstractServiceTest {
+class MapIteratorTest extends \PHPUnit_Framework_TestCase {
 
-    public function testToSql() {
-        $sqlStringFilter = new SqlStringFilter("foo.bar = LOWER(baz.bar) AND foo.id = zap.id");
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     */
+    public function testConstructorException1() {
+        $mapIterator = new MapIterator(new \DateTime(), function($item) {
+            return $item;
+        });
+    }
 
-        $this->assertEquals("foo.bar = LOWER(baz.bar) AND foo.id = zap.id", $sqlStringFilter->toSql($this->tdbmService->dbConnection));
-        $this->assertContains('foo', $sqlStringFilter->getUsedTables());
-        $this->assertContains('baz', $sqlStringFilter->getUsedTables());
-        $this->assertContains('zap', $sqlStringFilter->getUsedTables());
-        $this->assertCount(3, $sqlStringFilter->getUsedTables());
+    /**
+     * @expectedException \Mouf\Database\TDBM\TDBMException
+     */
+    public function testConstructorException2() {
+        $mapIterator = new MapIterator(array(1,2,3), function() {
+            return $item;
+        });
     }
 }

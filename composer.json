@@ -20,13 +20,14 @@
 	],
 	"require" : {
 		"php" : ">=5.5.0",
-		"mouf/database.dbconnection" : "~2.0",
-		"mouf/utils.cache.cache-interface" : "~2.0",
-		"mouf/utils.cache.no-cache" : "~2.0",
+	    "mouf/magic-query" : "~1.1",
+	    "doctrine/dbal": "~2.5",
+	    "mouf/database.doctrine-dbal-wrapper": "~1.1",
 		"mouf/utils.common.conditioninterface" : "~2.0",
-		"mouf/utils.log.errorlog_logger" : "~2.0",
-		"mouf/database.dao-interface" : "~2.0",
-	    "mouf/mouf": "~2.0.0"
+	    "psr/log": "~1.0",
+	    "mouf/mouf": "~2.0.0",
+	  	"doctrine/inflector": "~1.0",
+	    "beberlei/porpaginas": "~1.0"
 	},
     "require-dev" : {
 	    "phpunit/phpunit": "~4.0",
@@ -47,6 +48,7 @@
   	  }
     },
 	"minimum-stability" : "dev",
+    "prefer-stable": true,
 	"extra" : {
 		"mouf" : {
 			"install" : [{
@@ -60,17 +62,41 @@
 			],
 			"logo" : "icon.png",
 			"doc" : [{
+					"title" : "Install TDBM",
+					"url" : "doc/install.md"
+				},{
 					"title" : "Getting started",
 					"url" : "doc/quickstart.md"
+				}, {
+					"title" : "Add limit and offsets to your queries",
+					"url" : "doc/limit_offset_resultset.md"
 				}, {
 					"title" : "About DAOs",
 					"url" : "doc/generating_daos.md"
 				}, {
+					"title" : "Modeling inheritance",
+					"url" : "doc/modeling_inheritance.md"
+				}, {
 					"title" : "Advanced filtering",
 					"url" : "doc/advanced.md"
 				}, {
+					"title" : "JSON serialization",
+					"url" : "doc/json_serialization.md"
+				}, {
+					"title" : "Miscellaneous features",
+					"url" : "doc/miscellaneous.md"
+				}, {
 					"title" : "Memory management and batches processing",
 					"url" : "doc/memory_management.md"
+				}, {
+					"title" : "A quick comparison with Doctrine",
+					"url" : "doc/comparison_with_doctrine.md"
+				}, {
+					"title" : "Migrating",
+					"url" : "doc/migrating.md"
+				}, {
+					"title" : "TDBM internals",
+					"url" : "doc/internals.md"
 				}
 			]
 		}

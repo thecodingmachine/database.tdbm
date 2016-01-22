@@ -1,10 +1,8 @@
 <?php
-namespace Mouf\Database\TDBM\Filters;
-
-use Mouf\Database\DBConnection\ConnectionInterface;
+namespace Mouf\Database\TDBM;
 
 /*
- Copyright (C) 2006-2011 David Négrier - THE CODING MACHINE
+ Copyright (C) 2006-20015 David Négrier - THE CODING MACHINE
 
  This program is free software; you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by
@@ -21,26 +19,16 @@ use Mouf\Database\DBConnection\ConnectionInterface;
  Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-
 /**
- * Interface for the ORDER BY statements used in TDBMService->getObjects method.
+ * Class containing all possible states for an object.
  *
+ * @author David Negrier
  */
-interface OrderByInterface {
-
-	/**
-	 * Returns a list of ORDER BY statements to be applied.
-	 * Each statement will be in the form: table_name.column_name [ASC|DESC]
-	 *
-	 * @return array<string>
-	 */
-	public function toSqlStatementsArray();
-	
-	
-	/**
-	 * Returns the tables used in the order by in an array.
-	 *
-	 * @return array<string>
-	 */
-	public function getUsedTables();
+final class TDBMObjectStateEnum extends AbstractTDBMObject {
+    const STATE_DETACHED = "detached";
+    const STATE_NEW = "new";
+    const STATE_NOT_LOADED = "not loaded";
+    const STATE_LOADED = "loaded";
+    const STATE_DIRTY = "dirty";
+    const STATE_DELETED = "deleted";
 }
