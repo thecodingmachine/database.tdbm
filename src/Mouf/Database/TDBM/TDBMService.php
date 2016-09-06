@@ -1485,7 +1485,8 @@ class TDBMService {
 				// If there is only one primary key:
 				if (count($pk_table)==1) {
 					//$sql_where = "t1".$pk_table[0]."=".$this->db_connection->quoteSmart($this->TDBMObject_id);
-					$filter_bag2[] = new EqualFilter($thing->_getDbTableName(), $pk_table[0], $thing->$pk_table[0]);
+					$pkStr = $pk_table[0];
+					$filter_bag2[] = new EqualFilter($thing->_getDbTableName(), $pk_table[0], $thing->$pkStr);
 				} else {
 					//$ids = unserialize($this->TDBMObject_id);
 					//$i=0;
