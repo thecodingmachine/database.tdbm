@@ -2,6 +2,7 @@
 namespace Mouf\Database\TDBM\Filters;
 
 use Mouf\Database\DBConnection\ConnectionInterface;
+use Mouf\Database\TDBM\TDBMException;
 
 /*
  Copyright (C) 2006-2011 David Négrier - THE CODING MACHINE
