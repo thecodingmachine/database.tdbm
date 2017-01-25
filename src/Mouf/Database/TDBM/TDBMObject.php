@@ -325,6 +325,9 @@ class TDBMObject implements \ArrayAccess, \Iterator, \JsonSerializable, FilterIn
 
 	/**
 	 * Saves the current object by INSERTing or UPDAT(E)ing it in the database.
+     *
+     * This method must be called only from the DAOs.
+     * @internal
 	 */
 	public function save() {
 		if (!is_array($this->db_row)) {
