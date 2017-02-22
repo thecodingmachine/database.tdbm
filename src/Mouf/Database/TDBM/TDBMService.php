@@ -611,7 +611,7 @@ class TDBMService {
 	 * @param integer $from The offset
 	 * @param integer $limit The maximum number of objects returned
 	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
-	 * @return array|Generator|TDBMObjectArray The result set of the query as a TDBMObjectArray (an array of TDBMObjects with special properties)
+	 * @return array|\Generator|TDBMObjectArray The result set of the query as a TDBMObjectArray (an array of TDBMObjects with special properties)
 	 */
 	public function getObjectsFromSQL($table_name, $sql, $from=null, $limit=null, $className=null) {
 		if ($this->dbConnection == null) {
@@ -1382,7 +1382,7 @@ class TDBMService {
 	 * @param integer $limit The maximum number of rows returned
 	 * @param string $className Optional: The name of the class to instanciate. This class must extend the TDBMObject class. If none is specified, a TDBMObject instance will be returned.
 	 * @param unknown_type $hint_path Hints to get the path for the query (expert parameter, you should leave it to null).
-	 * @return array|Generator|TDBMObjectArray|int An array or object containing the resulting objects of the query.
+	 * @return array|\Generator|TDBMObjectArray|int An array or object containing the resulting objects of the query.
 	 */
 	public function getObjectsByMode($mode, $table_name, $filter_bag=null, $orderby_bag=null, $from=null, $limit=null, $className=null, $hint_path=null) {
 		$this->completeSave();
