@@ -4,9 +4,9 @@ namespace Mouf\Database\TDBM\Controllers;
 
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Controllers\AbstractMoufInstanceController;
-use Mouf\Database\TDBM\TDBMService;
-use Mouf\Database\TDBM\Utils\PathFinder\PathFinder;
-use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
+use TheCodingMachine\TDBM\TDBMService;
+use TheCodingMachine\TDBM\Utils\PathFinder\PathFinder;
+use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 use Mouf\Html\HtmlElement\HtmlBlock;
 use Mouf\MoufManager;
 use Mouf\InstanceProxy;

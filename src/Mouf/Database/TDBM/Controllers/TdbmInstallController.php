@@ -5,10 +5,10 @@ namespace Mouf\Database\TDBM\Controllers;
 use Mouf\Composer\ClassNameMapper;
 use Mouf\Actions\InstallUtils;
 use Mouf\Console\ConsoleUtils;
-use Mouf\Database\TDBM\Commands\GenerateCommand;
-use Mouf\Database\TDBM\Configuration;
+use TheCodingMachine\TDBM\Commands\GenerateCommand;
+use TheCodingMachine\TDBM\Configuration;
 use Mouf\Database\TDBM\MoufConfiguration;
-use Mouf\Database\TDBM\Utils\DefaultNamingStrategy;
+use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use Mouf\Database\TDBM\Utils\MoufDiListener;
 use Mouf\MoufManager;
 use Mouf\Html\HtmlElement\HtmlBlock;
@@ -63,7 +63,7 @@ class TdbmInstallController extends Controller
             $this->moufManager = MoufManager::getMoufManagerHiddenInstance();
         }
 
-        $this->content->addFile(dirname(__FILE__).'/../../../../views/installStep1.php', $this);
+        $this->content->addFile(__DIR__.'/../../../../views/installStep1.php', $this);
         $this->template->toHtml();
     }
 
@@ -177,6 +177,10 @@ class TdbmInstallController extends Controller
             $migratingFrom42 = true;
         }
 
+        if ($this->moufManager->has('tdbmService') && $this->moufManager->getInstanceDescriptor('tdbmService')->getClassName() === 'Mouf\\Database\\TDBM\\TDBMService') {
+            $this->migrateNamespaceTo50($this->moufManager);
+        }
+
         $namingStrategy = InstallUtils::getOrCreateInstance('namingStrategy', DefaultNamingStrategy::class, $this->moufManager);
         if ($migratingFrom42) {
             // Let's setup the naming strategy for compatibility
@@ -235,5 +239,28 @@ class TdbmInstallController extends Controller
         $this->errorMsg = $msg;
         $this->content->addFile(__DIR__.'/../../../../views/installError.php', $this);
         $this->template->toHtml();
+    }
+
+    /**
+     * Migrate classes from old 4.x namespace (Mouf\Database\TDBM) to new 5.x namespace (TheCodingMachine\TDBM)
+     *
+     * @param MoufManager $moufManager
+     */
+    private function migrateNamespaceTo50(MoufManager $moufManager)
+    {
+        $instanceList = $moufManager->getInstancesList();
+
+        $migratedClasses = [
+            'Mouf\\Database\\TDBM\\Configuration' => 'TheCodingMachine\\TDBM\\Configuration',
+            'Mouf\\Database\\TDBM\\TDBMService' => 'TheCodingMachine\\TDBM\\TDBMService',
+            'Mouf\\Database\\TDBM\\Commands\\GenerateCommand' => 'TheCodingMachine\\TDBM\\Commands\\GenerateCommand',
+            'Mouf\\Database\\TDBM\\Utils\\DefaultNamingStrategy' => 'TheCodingMachine\\TDBM\\Utils\\DefaultNamingStrategy',
+        ];
+
+        foreach ($instanceList as $instanceName => $className) {
+            if (isset($migratedClasses[$className])) {
+                $moufManager->alterClass($instanceName, $migratedClasses[$className]);
+            }
+        }
     }
 }

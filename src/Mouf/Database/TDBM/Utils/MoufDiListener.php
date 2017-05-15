@@ -3,10 +3,12 @@
 
 namespace Mouf\Database\TDBM\Utils;
 
-use Mouf\Database\TDBM\ConfigurationInterface;
+use TheCodingMachine\TDBM\ConfigurationInterface;
 use Mouf\Database\TDBM\MoufConfiguration;
-use Mouf\Database\TDBM\TDBMService;
+use TheCodingMachine\TDBM\TDBMService;
 use Mouf\MoufManager;
+use TheCodingMachine\TDBM\Utils\GeneratorListenerInterface;
+use TheCodingMachine\TDBM\Utils\TDBMDaoGenerator;
 
 class MoufDiListener implements GeneratorListenerInterface
 {
