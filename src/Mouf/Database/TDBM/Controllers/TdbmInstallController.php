@@ -213,7 +213,7 @@ class TdbmInstallController extends Controller
         }
 
         if (!$this->moufManager->instanceExists('tdbmService')) {
-            $tdbmService = $this->moufManager->createInstance('Mouf\\Database\\TDBM\\TDBMService')->setName('tdbmService');
+            $tdbmService = $this->moufManager->createInstance('TheCodingMachine\\TDBM\\TDBMService')->setName('tdbmService');
             $tdbmService->getConstructorArgumentProperty('configuration')->setValue($tdbmConfiguration);
         }
 
