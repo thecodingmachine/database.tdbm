@@ -201,7 +201,7 @@ class $baseClassName extends TDBMObject
 	 * @dbColumn '.$column->name.'
 	 * @param '.($castDatesToDateTime?'\\DateTimeImmutable|null':'timestamp|null').' $'.$column->name.'
 	 */
-	public function '.$columnSetterName.'('.($castDatesToDateTime?'\\DateTimeImmutable ':'').'$'.$column->name.') {
+	public function '.$columnSetterName.'('.($castDatesToDateTime?'\\DateTimeImmutable ':'').'$'.$column->name.($castDatesToDateTime?' = null':'').') {
 		if($'.$column->name.' === null) {
 			$this->__set(\''.$column->name.'\', null);
 		} else {';
