@@ -32,6 +32,7 @@ use Mouf\Database\MagicQuery;
 use Mouf\Database\SchemaAnalyzer\SchemaAnalyzer;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsFromSqlQueryFactory;
 use Mouf\Database\TDBM\QueryFactory\FindObjectsQueryFactory;
+use Mouf\Database\TDBM\QueryFactory\FindObjectsFromRawSqlQueryFactory;
 use Mouf\Database\TDBM\Utils\NamingStrategyInterface;
 use Mouf\Database\TDBM\Utils\TDBMDaoGenerator;
 use Phlib\Logger\LevelFilter;
@@ -1168,6 +1169,32 @@ class TDBMService
         $parameters = array_merge($parameters, $additionalParameters);
 
         $queryFactory = new FindObjectsFromSqlQueryFactory($mainTable, $from, $filterString, $orderString, $this, $this->tdbmSchemaAnalyzer->getSchema(), $this->orderByAnalyzer, $this->schemaAnalyzer, $this->cache, $this->cachePrefix);
+
+        return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
+    }
+
+    /**
+     * @param string $mainTable
+     * @param string $sql
+     * @param array $parameters
+     * @param $mode
+     * @param string|null $className
+     * @param string $sqlCount
+     *
+     * @return ResultIterator
+     *
+     * @throws TDBMException
+     */
+    public function findObjectsFromRawSql(string $mainTable, string $sql, array $parameters = array(), $mode, string $className = null, string $sqlCount = null)
+    {
+        // $mainTable is not secured in MagicJoin, let's add a bit of security to avoid SQL injection.
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $mainTable)) {
+            throw new TDBMException(sprintf("Invalid table name: '%s'", $mainTable));
+        }
+
+        $mode = $mode ?: $this->mode;
+
+        $queryFactory = new FindObjectsFromRawSqlQueryFactory($this, $this->tdbmSchemaAnalyzer->getSchema(), $mainTable, $sql, $sqlCount);
 
         return new ResultIterator($queryFactory, $parameters, $this->objectStorage, $className, $this, $this->magicQuery, $mode, $this->logger);
     }
