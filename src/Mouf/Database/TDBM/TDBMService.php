@@ -1465,32 +1465,34 @@ class TDBMService {
 			}
 		}
 
+		//If no $hint_path is provided, check that a path exists
+        if($hint_path === null){
+            // Now, for each needed table to perform the order by, we must verify if the relationship between the order by and the object is indeed a 1* relationship
+            foreach ($needed_table_array_for_orderby as $target_table_table) {
+                // Get the path between the main table and the target group by table
 
-		// Now, for each needed table to perform the order by, we must verify if the relationship between the order by and the object is indeed a 1* relationship
-		foreach ($needed_table_array_for_orderby as $target_table_table) {
-			// Get the path between the main table and the target group by table
+                // TODO! Pas bon!!!! Faut le quÃ©rir, hÃ©las!
+                // Mais comment gÃ©rer Ã§a sans plomber les perfs et en utilisant le path fourni?????
 
-			// TODO! Pas bon!!!! Faut le quÃ©rir, hÃ©las!
-			// Mais comment gÃ©rer Ã§a sans plomber les perfs et en utilisant le path fourni?????
+                $path = $this->getPathFromCache($table_name, $target_table_table);
 
-			$path = $this->getPathFromCache($table_name, $target_table_table);
+                /**********************************
+                 * Modifier par Marc de *1 vers 1*
+                 * (sur les conseils de David !)
+                 */
+                $is_ok = true;
+                foreach ($path as $step) {
+                    if ($step["type"]=="1*") {
+                        $is_ok = false;
+                        break;
+                    }
+                }
 
-			/**********************************
-			 * Modifier par Marc de *1 vers 1*
-			* (sur les conseils de David !)
-			*/
-			$is_ok = true;
-			foreach ($path as $step) {
-				if ($step["type"]=="1*") {
-					$is_ok = false;
-					break;
-				}
-			}
-
-			if (!$is_ok) {
-				throw new TDBMException("Error in querying database from getObjectsByFilter. You tried to order your data according to a column of the '$target_table_table' table. However, the '$target_table_table' table has a many to 1 relationship with the '$table_name' table. This means that one '$table_name' object can contain many '$target_table_table' objects. Therefore, trying to order '$table_name' objects using '$target_table_table' objects is meaningless and cannot be performed.");
-			}
-		}
+                if (!$is_ok) {
+                    throw new TDBMException("Error in querying database from getObjectsByFilter. You tried to order your data according to a column of the '$target_table_table' table. However, the '$target_table_table' table has a many to 1 relationship with the '$table_name' table. This means that one '$table_name' object can contain many '$target_table_table' objects. Therefore, trying to order '$table_name' objects using '$target_table_table' objects is meaningless and cannot be performed.");
+                }
+            }
+        }
 
 		// In a SELECT DISTINCT ... ORDER BY ... clause, the orderbyed columns must appear!
 		// Therefore, we must be able to parse the Orderby columns requested, give them dummy names and remove them afterward!
