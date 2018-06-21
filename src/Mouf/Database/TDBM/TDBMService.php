@@ -1468,12 +1468,14 @@ class TDBMService {
 			* (sur les conseils de David !)
 			*/
 			$is_ok = true;
-			foreach ($path as $step) {
-				if ($step["type"]=="1*") {
-					$is_ok = false;
-					break;
-				}
-			}
+			if($path){
+                foreach ($path as $step) {
+                    if ($step["type"]=="1*") {
+                        $is_ok = false;
+                        break;
+                    }
+                }
+            }
 
 			if (!$is_ok) {
 				throw new TDBMException("Error in querying database from getObjectsByFilter. You tried to order your data according to a column of the '$target_table_table' table. However, the '$target_table_table' table has a many to 1 relationship with the '$table_name' table. This means that one '$table_name' object can contain many '$target_table_table' objects. Therefore, trying to order '$table_name' objects using '$target_table_table' objects is meaningless and cannot be performed.");
