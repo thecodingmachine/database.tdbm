@@ -20,7 +20,7 @@
     ],
     "require" : {
         "php" : ">=7.1",
-        "thecodingmachine/tdbm" : "^5.0",
+        "thecodingmachine/tdbm" : "^5.1",
         "mouf/database.doctrine-dbal-wrapper": "~1.1",
         "mouf/utils.common.conditioninterface" : "~2.0",
         "mouf/mouf": "~2.0.27",
@@ -48,7 +48,7 @@
             "install" : [
                 {
                     "type" : "url",
-                    "url" : "tdbminstall3/",
+                    "url" : "tdbminstall51/",
                     "description" : "The install process of TDBM proposes to set up the DAOs and beans for your default DB connection."
                 }
             ],
