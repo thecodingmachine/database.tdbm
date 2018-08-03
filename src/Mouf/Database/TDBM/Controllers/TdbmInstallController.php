@@ -8,6 +8,10 @@ use Mouf\Console\ConsoleUtils;
 use TheCodingMachine\TDBM\Commands\GenerateCommand;
 use TheCodingMachine\TDBM\Configuration;
 use Mouf\Database\TDBM\MoufConfiguration;
+use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
+use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
+use TheCodingMachine\TDBM\Utils\Annotation\Bean;
+use TheCodingMachine\TDBM\Utils\Annotation\UUID;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use Mouf\Database\TDBM\Utils\MoufDiListener;
 use Mouf\MoufManager;
@@ -181,6 +185,13 @@ class TdbmInstallController extends Controller
             $this->migrateNamespaceTo50($this->moufManager);
         }
 
+        $annotationParser = InstallUtils::getOrCreateInstance(AnnotationParser::class, AnnotationParser::class, $this->moufManager);
+        $annotationParser->getConstructorArgumentProperty('annotations')->setValue([
+            'UUID' => UUID::class,
+            'Autoincrement' => Autoincrement::class,
+            'Bean' => Bean::class
+        ]);
+
         $namingStrategy = InstallUtils::getOrCreateInstance('namingStrategy', DefaultNamingStrategy::class, $this->moufManager);
         if ($migratingFrom42) {
             // Let's setup the naming strategy for compatibility
@@ -193,6 +204,11 @@ class TdbmInstallController extends Controller
             $namingStrategy->getSetterProperty('setBaseDaoPrefix')->setValue('');
             $namingStrategy->getSetterProperty('setBaseDaoSuffix')->setValue('BaseDao');
         }
+        if ($namingStrategy->getClassName() === DefaultNamingStrategy::class) {
+            $namingStrategy->getConstructorArgumentProperty('annotationParser')->setValue($this->moufManager->getInstanceDescriptor(AnnotationParser::class));
+            $namingStrategy->getConstructorArgumentProperty('schemaManager')->setOrigin('php')->setValue('return $container->get(\'dbalConnection\')->getSchemaManager();');
+        }
+
 
         if (!$this->moufManager->instanceExists('tdbmConfiguration')) {
             $moufListener = InstallUtils::getOrCreateInstance(MoufDiListener::class, MoufDiListener::class, $this->moufManager);
