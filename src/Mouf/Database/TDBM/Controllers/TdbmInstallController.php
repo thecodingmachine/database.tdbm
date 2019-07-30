@@ -8,9 +8,22 @@ use Mouf\Console\ConsoleUtils;
 use TheCodingMachine\TDBM\Commands\GenerateCommand;
 use TheCodingMachine\TDBM\Configuration;
 use Mouf\Database\TDBM\MoufConfiguration;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterface;
+use TheCodingMachine\TDBM\Utils\Annotation\AddInterfaceOnDao;
+use TheCodingMachine\TDBM\Utils\Annotation\AddTrait;
+use TheCodingMachine\TDBM\Utils\Annotation\AddTraitOnDao;
 use TheCodingMachine\TDBM\Utils\Annotation\AnnotationParser;
 use TheCodingMachine\TDBM\Utils\Annotation\Autoincrement;
 use TheCodingMachine\TDBM\Utils\Annotation\Bean;
+use TheCodingMachine\TDBM\Utils\Annotation\JsonCollection;
+use TheCodingMachine\TDBM\Utils\Annotation\JsonFormat;
+use TheCodingMachine\TDBM\Utils\Annotation\JsonIgnore;
+use TheCodingMachine\TDBM\Utils\Annotation\JsonInclude;
+use TheCodingMachine\TDBM\Utils\Annotation\JsonKey;
+use TheCodingMachine\TDBM\Utils\Annotation\JsonRecursive;
+use TheCodingMachine\TDBM\Utils\Annotation\ProtectedGetter;
+use TheCodingMachine\TDBM\Utils\Annotation\ProtectedOneToMany;
+use TheCodingMachine\TDBM\Utils\Annotation\ProtectedSetter;
 use TheCodingMachine\TDBM\Utils\Annotation\UUID;
 use TheCodingMachine\TDBM\Utils\DefaultNamingStrategy;
 use Mouf\Database\TDBM\Utils\MoufDiListener;
@@ -189,7 +202,20 @@ class TdbmInstallController extends Controller
         $annotationParser->getConstructorArgumentProperty('annotations')->setValue([
             'UUID' => UUID::class,
             'Autoincrement' => Autoincrement::class,
-            'Bean' => Bean::class
+            'Bean' => Bean::class,
+            'ProtectedGetter' => ProtectedGetter::class,
+            'ProtectedSetter' => ProtectedSetter::class,
+            'ProtectedOneToMany' => ProtectedOneToMany::class,
+            'JsonKey' => JsonKey::class,
+            'JsonIgnore' => JsonIgnore::class,
+            'JsonInclude' => JsonInclude::class,
+            'JsonRecursive' => JsonRecursive::class,
+            'JsonCollection' => JsonCollection::class,
+            'JsonFormat' => JsonFormat::class,
+            'AddInterface' => AddInterface::class,
+            'AddInterfaceOnDao' => AddInterfaceOnDao::class,
+            'AddTrait' => AddTrait::class,
+            'AddTraitOnDao' => AddTraitOnDao::class,
         ]);
 
         $namingStrategy = InstallUtils::getOrCreateInstance('namingStrategy', DefaultNamingStrategy::class, $this->moufManager);
