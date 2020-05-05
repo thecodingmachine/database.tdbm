@@ -537,12 +537,12 @@ class $baseClassName implements DAOInterface
 	 * @param boolean \$cascade if true, it will delete all object linked to \$obj
 	 */
 	public function delete(\$obj, \$cascade=false) {
-	    if (\$cascade === true)
-		    \$this->tdbmService->deleteObject(\$obj);
-        else
-            \$this->tdbmService->deleteCascade(\$obj);
+	    if (\$cascade === true) {
+		    \$this->tdbmService->deleteCascade(\$obj);
+		} else {
+            \$this->tdbmService->deleteObject(\$obj);
+        }
 	}
-
 
 	/**
 	 * Get a list of $beanClassWithoutNameSpace specified by its filters.
