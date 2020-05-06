@@ -1,4 +1,5 @@
 <?php
+
 namespace Mouf\Database\TDBM\Utils;
 
 use Mouf\Composer\ClassNameMapper;
@@ -8,145 +9,156 @@ use Mouf\Database\TDBM\TDBMException;
 
 /**
  * This class generates automatically DAOs and Beans for TDBM.
- *
  */
-class TDBMDaoGenerator {
+class TDBMDaoGenerator
+{
+    /**
+     * @var ConnectionInterface
+     */
+    private $dbConnection;
 
-	/**
-	 * 
-	 * @var ConnectionInterface
-	 */
-	private $dbConnection;
-	
-	
-	/**
-	 * The namespace for the DAOs, without trailing \
-	 * @var string
-	 */
-	private $daoNamespace;
-	
-	/**
-	 * The Namespace for the beans, without trailing \
-	 * @var string
-	 */
-	private $beanNamespace;
+    /**
+     * The namespace for the DAOs, without trailing \.
+     *
+     * @var string
+     */
+    private $daoNamespace;
 
-	/**
-	 * @var string
-	 */
-	private $rootPath;
+    /**
+     * The Namespace for the beans, without trailing \.
+     *
+     * @var string
+     */
+    private $beanNamespace;
 
-	/**
-	 * Constructor.
-	 *
-	 * @param ConnectionInterface $dbConnection The connection to the database.
-	 */
-	public function __construct(ConnectionInterface $dbConnection) {
-		$this->dbConnection = $dbConnection;
-		$this->rootPath = __DIR__."/../../../../../../../../";
-		
-	}
+    /**
+     * @var string
+     */
+    private $rootPath;
 
-	/**
-	 * Generates all the daos and beans.
-	 *
-	 * @param string $daoFactoryClassName The classe name of the DAO factory
-	 * @param string $daonamespace The namespace for the DAOs, without trailing \
-	 * @param string $beannamespace The Namespace for the beans, without trailing \
-	 * @param bool $support If the generated daos should keep support for old functions (eg : getUserList and getList)
-	 * @param bool $storeInUtc If the generated daos should store the date in UTC timezone instead of user's timezone.
-	 * @param bool $castDatesToDateTime Whether dates are converted to DateTimeImmutable or to timestamp
-	 * @return \string[] the list of tables
-	 * @throws TDBMException
-	 */
-	public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime) {
-		// TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
+    /**
+     * Constructor.
+     *
+     * @param ConnectionInterface $dbConnection The connection to the database.
+     */
+    public function __construct(ConnectionInterface $dbConnection)
+    {
+        $this->dbConnection = $dbConnection;
+        $this->rootPath = __DIR__.'/../../../../../../../../';
+    }
+
+    /**
+     * Generates all the daos and beans.
+     *
+     * @param string $daoFactoryClassName The classe name of the DAO factory
+     * @param string $daonamespace        The namespace for the DAOs, without trailing \
+     * @param string $beannamespace       The Namespace for the beans, without trailing \
+     * @param bool   $support             If the generated daos should keep support for old functions (eg : getUserList and getList)
+     * @param bool   $storeInUtc          If the generated daos should store the date in UTC timezone instead of user's timezone.
+     * @param bool   $castDatesToDateTime Whether dates are converted to DateTimeImmutable or to timestamp
+     *
+     * @throws TDBMException
+     *
+     * @return \string[] the list of tables
+     */
+    public function generateAllDaosAndBeans($daoFactoryClassName, $daonamespace, $beannamespace, $support, $storeInUtc, $castDatesToDateTime)
+    {
+        // TODO: migrate $this->daoNamespace to $daonamespace that is passed in parameter!
         $classNameMapper = ClassNameMapper::createFromComposerFile($this->rootPath.'composer.json');
 
-		$this->daoNamespace = $daonamespace;
-		$this->beanNamespace = $beannamespace;
-		
-		// TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
+        $this->daoNamespace = $daonamespace;
+        $this->beanNamespace = $beannamespace;
 
-		$tableList = $this->dbConnection->getListOfTables();
-		foreach ($tableList as $table) {
-			$this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
-		}
-		
-		$this->generateFactory($tableList, $daoFactoryClassName, $daonamespace, $classNameMapper);
+        // TODO: check that no class name ends with "Base". Otherwise, there will be name clash.
 
-		// Ok, let's return the list of all tables.
-		// These will be used by the calling script to create Mouf instances.
-		
-		return $tableList;
-	}
-	
-	/**
-	 * Generates in one method call the daos and the beans for one table.
-	 * 
-	 * @param $tableName
-	 */
-	public function generateDaoAndBean($tableName, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime) {
-		$daoName = $this->getDaoNameFromTableName($tableName);
-		$beanName = $this->getBeanNameFromTableName($tableName);
-		$baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
+        $tableList = $this->dbConnection->getListOfTables();
+        foreach ($tableList as $table) {
+            $this->generateDaoAndBean($table, $daonamespace, $beannamespace, $classNameMapper, $support, $storeInUtc, $castDatesToDateTime);
+        }
+
+        $this->generateFactory($tableList, $daoFactoryClassName, $daonamespace, $classNameMapper);
+
+        // Ok, let's return the list of all tables.
+        // These will be used by the calling script to create Mouf instances.
+
+        return $tableList;
+    }
+
+    /**
+     * Generates in one method call the daos and the beans for one table.
+     *
+     * @param $tableName
+     */
+    public function generateDaoAndBean($tableName, $daonamespace, $beannamespace, ClassNameMapper $classNameMapper, $support, $storeInUtc, $castDatesToDateTime)
+    {
+        $daoName = $this->getDaoNameFromTableName($tableName);
+        $beanName = $this->getBeanNameFromTableName($tableName);
+        $baseBeanName = $this->getBaseBeanNameFromTableName($tableName);
 
         $connection = $this->dbConnection;
-        if ($connection instanceof CachedConnection){
+        if ($connection instanceof CachedConnection) {
             $connection->cacheService->purgeAll();
         }
-		
-		$this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper, $storeInUtc, $castDatesToDateTime);
-		$this->generateDao($daoName, $daoName."Base", $beanName, $tableName, $classNameMapper, $support);
-	}
-	
-	/**
-	 * Returns the name of the bean class from the table name.
-	 * 
-	 * @param $tableName
-	 * @return string
-	 */
-	public static function getBeanNameFromTableName($tableName) {
-		return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."Bean";
-	}
-	
-	/**
-	 * Returns the name of the base bean class from the table name.
-	 * 
-	 * @param $tableName
-	 * @return string
-	 */
-	public static function getDaoNameFromTableName($tableName) {
-		return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."Dao";
-	}
-	
-	/**
-	 * Returns the name of the DAO class from the table name.
-	 * 
-	 * @param $tableName
-	 * @return string
-	 */
-	public static function getBaseBeanNameFromTableName($tableName) {
-		return TDBMDaoGenerator::toSingular(TDBMDaoGenerator::toCamelCase($tableName))."BaseBean";
-	}
+
+        $this->generateBean($beanName, $baseBeanName, $tableName, $beannamespace, $classNameMapper, $storeInUtc, $castDatesToDateTime);
+        $this->generateDao($daoName, $daoName.'Base', $beanName, $tableName, $classNameMapper, $support);
+    }
+
+    /**
+     * Returns the name of the bean class from the table name.
+     *
+     * @param $tableName
+     *
+     * @return string
+     */
+    public static function getBeanNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'Bean';
+    }
+
+    /**
+     * Returns the name of the base bean class from the table name.
+     *
+     * @param $tableName
+     *
+     * @return string
+     */
+    public static function getDaoNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'Dao';
+    }
+
+    /**
+     * Returns the name of the DAO class from the table name.
+     *
+     * @param $tableName
+     *
+     * @return string
+     */
+    public static function getBaseBeanNameFromTableName($tableName)
+    {
+        return self::toSingular(self::toCamelCase($tableName)).'BaseBean';
+    }
 
     /**
      * Writes the PHP bean file with all getters and setters from the table passed in parameter.
      *
-     * @param string $className The name of the class
-     * @param string $baseClassName The name of the base class which will be extended (name only, no directory)
-     * @param string $tableName The name of the table
-     * @param string $beannamespace The namespace of the bean
+     * @param string          $className       The name of the class
+     * @param string          $baseClassName   The name of the base class which will be extended (name only, no directory)
+     * @param string          $tableName       The name of the table
+     * @param string          $beannamespace   The namespace of the bean
      * @param ClassNameMapper $classNameMapper
+     *
      * @throws TDBMException
      */
-	public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc, $castDatesToDateTime) {
-		$table = $this->dbConnection->getTableFromDbModel($tableName);
+    public function generateBean($className, $baseClassName, $tableName, $beannamespace, ClassNameMapper $classNameMapper, $storeInUtc, $castDatesToDateTime)
+    {
+        $table = $this->dbConnection->getTableFromDbModel($tableName);
 
-		// List of methods already written.
-		$methodsList = array();
-		
-		$str = "<?php
+        // List of methods already written.
+        $methodsList = [];
+
+        $str = "<?php
 namespace {$beannamespace};
 
 use Mouf\\Database\\TDBM\\TDBMObject;
@@ -164,33 +176,32 @@ use Mouf\\Database\\TDBM\\TDBMObject;
 class $baseClassName extends TDBMObject 
 {
 ";
-		
-		
-		foreach ($table->columns as $column) {
-			$type = $column->type;
-			$normalizedType = $this->dbConnection->getUnderlyingType($type);
 
-			$columnGetterName = self::getGetterNameForPropertyName($column->name);
-			$columnSetterName = self::getSetterNameForPropertyName($column->name);
-			
-			$methodsList[$columnGetterName] = $columnGetterName;
-			$methodsList[$columnSetterName] = $columnSetterName;			
-			
-			if ($normalizedType == "timestamp" || $normalizedType == "datetime" || $normalizedType == "date") {
-				$str .= '	/**
+        foreach ($table->columns as $column) {
+            $type = $column->type;
+            $normalizedType = $this->dbConnection->getUnderlyingType($type);
+
+            $columnGetterName = self::getGetterNameForPropertyName($column->name);
+            $columnSetterName = self::getSetterNameForPropertyName($column->name);
+
+            $methodsList[$columnGetterName] = $columnGetterName;
+            $methodsList[$columnSetterName] = $columnSetterName;
+
+            if ($normalizedType == 'timestamp' || $normalizedType == 'datetime' || $normalizedType == 'date') {
+                $str .= '	/**
 	 * The getter for the "'.$column->name.'" column.
 	 * It is returned as a PHP timestamp.
 	 *
 	 * @dbType '.$normalizedType.'
 	 * @dbColumn '.$column->name.'
-	 * @return '.($castDatesToDateTime?'\\DateTimeImmutable|null':'timestamp|null').'
+	 * @return '.($castDatesToDateTime ? '\\DateTimeImmutable|null' : 'timestamp|null').'
 	 */
 	public function '.$columnGetterName.'() {
 		$date = $this->__get(\''.$column->name.'\');
 		if($date === null) {
 			return null;
 		} else {
-			return '.($castDatesToDateTime?'new \\DateTimeImmutable':'strtotime').'($date'.($storeInUtc?'.\' UTC\'':'').');
+			return '.($castDatesToDateTime ? 'new \\DateTimeImmutable' : 'strtotime').'($date'.($storeInUtc ? '.\' UTC\'' : '').');
 		}
 	}
 	
@@ -199,41 +210,41 @@ class $baseClassName extends TDBMObject
 	 * It must be provided as a PHP timestamp.
 	 *
 	 * @dbColumn '.$column->name.'
-	 * @param '.($castDatesToDateTime?'\\DateTimeImmutable|null':'timestamp|null').' $'.$column->name.'
+	 * @param '.($castDatesToDateTime ? '\\DateTimeImmutable|null' : 'timestamp|null').' $'.$column->name.'
 	 */
-	public function '.$columnSetterName.'('.($castDatesToDateTime?'\\DateTimeImmutable ':'').'$'.$column->name.($castDatesToDateTime?' = null':'').') {
+	public function '.$columnSetterName.'('.($castDatesToDateTime ? '\\DateTimeImmutable ' : '').'$'.$column->name.($castDatesToDateTime ? ' = null' : '').') {
 		if($'.$column->name.' === null) {
 			$this->__set(\''.$column->name.'\', null);
 		} else {';
-			if ($castDatesToDateTime) {
-				if ($storeInUtc) {
-					$str .= '
+                if ($castDatesToDateTime) {
+                    if ($storeInUtc) {
+                        $str .= '
 			$this->__set(\''.$column->name.'\', $'.$column->name.'->setTimeZone(\\DateTimeZone::UTC)->format("Y-m-d H:i:s"));
 						';
-				} else {
-					$str .= '
+                    } else {
+                        $str .= '
 			$this->__set(\''.$column->name.'\', $'.$column->name.'->format("Y-m-d H:i:s"));
 						';
-				}
-			} else {
-				if ($storeInUtc) {
-					$str .= '
+                    }
+                } else {
+                    if ($storeInUtc) {
+                        $str .= '
 			$date = new \DateTimeImmutable(\'@\'.$'.$column->name.');
 			$this->__set(\''.$column->name.'\', $date->format("Y-m-d H:i:s"));
 						';
-				} else {
-					$str .= '
+                    } else {
+                        $str .= '
 			$this->__set(\''.$column->name.'\', date("Y-m-d H:i:s", $'.$column->name.'));
 						';
-				}
-			}
-					$str .= '
+                    }
+                }
+                $str .= '
 		}
 	}
 	
 ';
-			} else {
-				$str .= '	/**
+            } else {
+                $str .= '	/**
 	 * The getter for the "'.$column->name.'" column.
 	 *
 	 * @dbType '.$normalizedType.'
@@ -254,99 +265,94 @@ class $baseClassName extends TDBMObject
 		$this->__set(\''.$column->name.'\', $'.$column->name.');
 	}
 	
-';				
-			}
+';
+            }
+        }
 
+        $referencedTablesList = [];
+        // Now, let's get the constraints from this table on another table.
+        // We will generate getters and setters for those.
+        //$constraints = $this->dbConnection->getConstraintsFromTable($tableName);
+        $constraints = $this->dbConnection->getConstraintsOnTable($tableName);
 
-		}
+        foreach ($constraints as $array) {
+            if (!isset($referencedTablesList[$array['table2']])) {
+                $referencedTablesList[$array['table2']] = 1;
+            } else {
+                $referencedTablesList[$array['table2']] += 1;
+            }
+            $getterName = self::getGetterNameForConstrainedObject($array['table2'], $array['col1']);
+            $setterName = self::getSetterNameForConstrainedObject($array['table2'], $array['col1']);
 
-		$referencedTablesList = array();
-		// Now, let's get the constraints from this table on another table.
-		// We will generate getters and setters for those. 
-		//$constraints = $this->dbConnection->getConstraintsFromTable($tableName);
-		$constraints = $this->dbConnection->getConstraintsOnTable($tableName);
-		
-		foreach ($constraints as $array) {
-			if (!isset($referencedTablesList[$array["table2"]])) {
-				$referencedTablesList[$array["table2"]] = 1; 
-			} else {
-				$referencedTablesList[$array["table2"]] += 1;
-			}
-			$getterName = self::getGetterNameForConstrainedObject($array["table2"], $array["col1"]);
-			$setterName = self::getSetterNameForConstrainedObject($array["table2"], $array["col1"]);
-			
-			// If the method has already been defined, lets not write it.
-			if (isset($methodsList[$getterName]) || isset($methodsList[$setterName])) {
-				continue;
-			}
-			$methodsList[$getterName] = $getterName;
-			$methodsList[$setterName] = $setterName; 
+            // If the method has already been defined, lets not write it.
+            if (isset($methodsList[$getterName]) || isset($methodsList[$setterName])) {
+                continue;
+            }
+            $methodsList[$getterName] = $getterName;
+            $methodsList[$setterName] = $setterName;
 
-			$referencedBeanName = $this->getBeanNameFromTableName($array["table2"]);
+            $referencedBeanName = $this->getBeanNameFromTableName($array['table2']);
 
-			$str .= '	/**
-	 * Returns the '.$referencedBeanName.' object bound to this object via the '.$array["col1"].' column.
+            $str .= '	/**
+	 * Returns the '.$referencedBeanName.' object bound to this object via the '.$array['col1'].' column.
 	 * 
 	 * @return '.$referencedBeanName.'
 	 */
 	public function '.$getterName.'() {
-		if ($this->'.$array["col1"].' == null) {
+		if ($this->'.$array['col1'].' == null) {
 			return null;
 		}
-		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].', null, true);
+		return $this->tdbmService->getObject("'.$array['table2'].'", $this->'.$array['col1'].', null, true);
 	}
 	
 	/**
-	 * The setter for the '.$referencedBeanName.' object bound to this object via the '.$array["col1"].' column.
+	 * The setter for the '.$referencedBeanName.' object bound to this object via the '.$array['col1'].' column.
 	 *
 	 * @param '.$referencedBeanName.' $object
 	 */
 	public function '.$setterName.'('.$referencedBeanName.' $object = null) {
-		$this->__set(\''.$array["col1"].'\', ($object == null)?null:$object->__get(\''.$array["col2"].'\'));
+		$this->__set(\''.$array['col1'].'\', ($object == null)?null:$object->__get(\''.$array['col2'].'\'));
 	}
 	
 ';
-				
-		}
-	
-		
-		// Now, let's implement the shortcuts to the getter of objects.
-		// Shortcuts are used to save typing. They are available only if a referenced table is referenced only once by our tables.
-		foreach($referencedTablesList as $referrencedTable=>$number) {
-			if ($number == 1) {
-				foreach ($constraints as $array) {
-					if ($array['table2'] ==$referrencedTable) {
-						$columnName = $array['col1'];
-						$targetColumnName = $array['col2'];
-						break;
-					}
-				}
-				$fullGetterName = self::getGetterNameForConstrainedObject($referrencedTable, $columnName);
-				$shortGetterName = self::getGetterNameForConstrainedObject($referrencedTable);
-				$fullSetterName = self::getSetterNameForConstrainedObject($referrencedTable, $columnName);
-				$shortSetterName = self::getSetterNameForConstrainedObject($referrencedTable);
+        }
 
-				// If the method has already been defined, lets not write it.
-				if (isset($methodsList[$shortGetterName]) || isset($methodsList[$shortSetterName])) {
-					continue;
-				}
-				$methodsList[$shortGetterName] = $shortGetterName;
-				$methodsList[$shortSetterName] = $shortSetterName; 
-					
-				
-				$referencedBeanName = $this->getBeanNameFromTableName($array["table2"]);
-				
-				$str .= '	/**
-	 * Returns the '.$referencedBeanName.' object bound to this object via the '.$array["col1"].' column.
+        // Now, let's implement the shortcuts to the getter of objects.
+        // Shortcuts are used to save typing. They are available only if a referenced table is referenced only once by our tables.
+        foreach ($referencedTablesList as $referrencedTable=>$number) {
+            if ($number == 1) {
+                foreach ($constraints as $array) {
+                    if ($array['table2'] == $referrencedTable) {
+                        $columnName = $array['col1'];
+                        $targetColumnName = $array['col2'];
+                        break;
+                    }
+                }
+                $fullGetterName = self::getGetterNameForConstrainedObject($referrencedTable, $columnName);
+                $shortGetterName = self::getGetterNameForConstrainedObject($referrencedTable);
+                $fullSetterName = self::getSetterNameForConstrainedObject($referrencedTable, $columnName);
+                $shortSetterName = self::getSetterNameForConstrainedObject($referrencedTable);
+
+                // If the method has already been defined, lets not write it.
+                if (isset($methodsList[$shortGetterName]) || isset($methodsList[$shortSetterName])) {
+                    continue;
+                }
+                $methodsList[$shortGetterName] = $shortGetterName;
+                $methodsList[$shortSetterName] = $shortSetterName;
+
+                $referencedBeanName = $this->getBeanNameFromTableName($array['table2']);
+
+                $str .= '	/**
+	 * Returns the '.$referencedBeanName.' object bound to this object via the '.$array['col1'].' column.
 	 * This is an alias for the '.$fullGetterName.' method.  
 	 *
 	 * @return '.$referencedBeanName.'
 	 */
 	public function '.$shortGetterName.'() {
-		if ($this->'.$array["col1"].' == null) {
+		if ($this->'.$array['col1'].' == null) {
 			return null;
 		}
-		return $this->tdbmService->getObject("'.$array["table2"].'", $this->'.$array["col1"].');
+		return $this->tdbmService->getObject("'.$array['table2'].'", $this->'.$array['col1'].');
 	}
 	
 	/**
@@ -356,37 +362,34 @@ class $baseClassName extends TDBMObject
 	 * @param '.$referencedBeanName.' $object
 	 */
 	public function '.$shortSetterName.'('.$referencedBeanName.' $object = null) {
-		$this->__set(\''.$array["col1"].'\', ($object == null)?null:$object->__get(\''.$array["col2"].'\'));
+		$this->__set(\''.$array['col1'].'\', ($object == null)?null:$object->__get(\''.$array['col2'].'\'));
 	}
 	
 ';
-					
-			}
-		}
-		
-		$str .= "}
-?>";
+            }
+        }
 
-        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace."\\".$baseClassName);
+        $str .= '}
+?>';
+
+        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$baseClassName);
         if (!$possibleBaseFileNames) {
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$baseClassName.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace.'\\'.$baseClassName.'" is not autoloadable.');
         }
         $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
-		file_put_contents($possibleBaseFileName, $str);
-		@chmod($possibleBaseFileName, 0664);
+        file_put_contents($possibleBaseFileName, $str);
+        @chmod($possibleBaseFileName, 0664);
 
-
-
-        $possibleFileNames = $classNameMapper->getPossibleFileNames($beannamespace."\\".$className);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($beannamespace.'\\'.$className);
         if (!$possibleFileNames) {
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace."\\".$className.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$beannamespace.'\\'.$className.'" is not autoloadable.');
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];
 
         if (!file_exists($possibleFileName)) {
-			$str = "<?php
+            $str = "<?php
 /*
  * This file has been automatically generated by TDBM.
  * You can edit this file as it will not be overwritten.
@@ -404,40 +407,41 @@ class $className extends $baseClassName
 
 }";
             $this->ensureDirectoryExist($possibleFileName);
-			file_put_contents($possibleFileName ,$str);
-			@chmod($possibleFileName, 0664);
-		}
-	}
+            file_put_contents($possibleFileName, $str);
+            @chmod($possibleFileName, 0664);
+        }
+    }
 
-	/**
-	 * Writes the PHP bean DAO with simple functions to create/get/save objects.
-	 *
-	 * @param string $fileName The file that will be written (without the directory)
-	 * @param string $className The name of the class
-	 * @param string $tableName The name of the table
-	 */
-	public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper, $support) {
-		$info = $this->dbConnection->getTableInfo($tableName);
-		$defaultSort = null;
-		foreach ($info as $index => $data) {
-			$comments = $data['column_comment'];
-			$matches = array();
-			if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0){
-				$defaultSort = $data['column_name'];
-				if (count($matches == 3)){
-					$defaultSortDirection = $matches[2];
-				}else{
-					$defaultSortDirection = 'ASC';
-				}
-			}
-		}
-				
-		$tableCamel = self::toSingular(self::toCamelCase($tableName));
-		
-		$beanClassWithoutNameSpace = $beanClassName;
-		$beanClassName = $this->beanNamespace."\\".$beanClassName;
-		
-		$str = "<?php
+    /**
+     * Writes the PHP bean DAO with simple functions to create/get/save objects.
+     *
+     * @param string $fileName  The file that will be written (without the directory)
+     * @param string $className The name of the class
+     * @param string $tableName The name of the table
+     */
+    public function generateDao($className, $baseClassName, $beanClassName, $tableName, ClassNameMapper $classNameMapper, $support)
+    {
+        $info = $this->dbConnection->getTableInfo($tableName);
+        $defaultSort = null;
+        foreach ($info as $index => $data) {
+            $comments = $data['column_comment'];
+            $matches = [];
+            if (preg_match('/@defaultSort(\((desc|asc)\))*/', $comments, $matches) != 0) {
+                $defaultSort = $data['column_name'];
+                if (count($matches == 3)) {
+                    $defaultSortDirection = $matches[2];
+                } else {
+                    $defaultSortDirection = 'ASC';
+                }
+            }
+        }
+
+        $tableCamel = self::toSingular(self::toCamelCase($tableName));
+
+        $beanClassWithoutNameSpace = $beanClassName;
+        $beanClassName = $this->beanNamespace.'\\'.$beanClassName;
+
+        $str = "<?php
 /*
  * This file has been automatically generated by TDBM.
  * DO NOT edit this file, as it might be overwritten.
@@ -467,13 +471,13 @@ class $baseClassName implements DAOInterface
 	 * The default Sort column
 	 * @var string
 	 */
-	private \$defaultSort = ".($defaultSort ? "'$defaultSort'" : 'null').";
+	private \$defaultSort = ".($defaultSort ? "'$defaultSort'" : 'null').';
 	
 	/**
 	 * The default Sort direction
 	 * @var string
 	 */
-	private \$defaultDirection = ".($defaultSort && $defaultSortDirection ? "'$defaultSortDirection'" : "'asc'").";
+	private $defaultDirection = '.($defaultSort && $defaultSortDirection ? "'$defaultSortDirection'" : "'asc'").";
 	
 	/**
 	 * Sets the TDBM service used by this DAO.
@@ -537,12 +541,12 @@ class $baseClassName implements DAOInterface
 	 * @param boolean \$cascade if true, it will delete all object linked to \$obj
 	 */
 	public function delete(\$obj, \$cascade=false) {
-	    if (\$cascade === true)
-		    \$this->tdbmService->deleteObject(\$obj);
-        else
-            \$this->tdbmService->deleteCascade(\$obj);
+	    if (\$cascade === true) {
+		    \$this->tdbmService->deleteCascade(\$obj);
+		} else {
+            \$this->tdbmService->deleteObject(\$obj);
+        }
 	}
-
 
 	/**
 	 * Get a list of $beanClassWithoutNameSpace specified by its filters.
@@ -578,9 +582,9 @@ class $baseClassName implements DAOInterface
 		\$this->defaultSort = \$defaultSort;
 	}
 	";
-// If we want compatibility with TDBM < 2.3
-if ($support) {
-$str .= "
+        // If we want compatibility with TDBM < 2.3
+        if ($support) {
+            $str .= "
 
 	/**
 	 * Return a new instance of $beanClassWithoutNameSpace object, that will be persisted in database.
@@ -650,34 +654,34 @@ $str .= "
 	 * @param mixed \$filterBag The filter bag (see TDBMService::getObjects for complete description)
 	 * @return $beanClassWithoutNameSpace
 	 */
-	protected function get".$tableCamel."ByFilter(\$filterBag=null) {
-		return \$this->getByFilter(\$filterBag);
+	protected function get".$tableCamel.'ByFilter($filterBag=null) {
+		return $this->getByFilter($filterBag);
 	}
-	";
+	';
+        }
+        $str .= '
 }
-$str .= "
-}
-?>";
+?>';
 
-        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($this->daoNamespace."\\".$baseClassName);
+        $possibleBaseFileNames = $classNameMapper->getPossibleFileNames($this->daoNamespace.'\\'.$baseClassName);
         if (!$possibleBaseFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$baseClassName.'" is not autoloadable.');
         }
         $possibleBaseFileName = $this->rootPath.$possibleBaseFileNames[0];
 
         $this->ensureDirectoryExist($possibleBaseFileName);
-		file_put_contents($possibleBaseFileName ,$str);
-		@chmod($possibleBaseFileName, 0664);
+        file_put_contents($possibleBaseFileName, $str);
+        @chmod($possibleBaseFileName, 0664);
 
-        $possibleFileNames = $classNameMapper->getPossibleFileNames($this->daoNamespace."\\".$className);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($this->daoNamespace.'\\'.$className);
         if (!$possibleFileNames) {
             throw new TDBMException('Sorry, autoload namespace issue. The class "'.$className.'" is not autoloadable.');
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];
-		
-		// Now, let's generate the "editable" class
-		if (!file_exists($possibleFileName)) {
-			$str = "<?php
+
+        // Now, let's generate the "editable" class
+        if (!file_exists($possibleFileName)) {
+            $str = "<?php
 /*
  * This file has been automatically generated by TDBM.
  * You can edit this file as it will not be overwritten.
@@ -694,20 +698,21 @@ class $className extends $baseClassName
 
 }";
             $this->ensureDirectoryExist($possibleFileName);
-			file_put_contents($possibleFileName ,$str);
-			@chmod($possibleFileName, 0664);
-		}
-	}
-	
-	/**
-	 * Generates the factory bean.
-	 * 
-	 * @param $tableList
-	 */
-	private function generateFactory($tableList, $daoFactoryClassName, $daoNamespace, ClassNameMapper $classNameMapper) {
-		// For each table, let's write a property.
-		
-		$str = "<?php
+            file_put_contents($possibleFileName, $str);
+            @chmod($possibleFileName, 0664);
+        }
+    }
+
+    /**
+     * Generates the factory bean.
+     *
+     * @param $tableList
+     */
+    private function generateFactory($tableList, $daoFactoryClassName, $daoNamespace, ClassNameMapper $classNameMapper)
+    {
+        // For each table, let's write a property.
+
+        $str = "<?php
 /*
  * This file has been automatically generated by TDBM.
  * DO NOT edit this file, as it might be overwritten.
@@ -723,11 +728,11 @@ class $daoFactoryClassName
 {
 ";
 
-		foreach ($tableList as $table) {
-			$daoClassName = $this->getDaoNameFromTableName($table);
-			$daoInstanceName = self::toVariableName($daoClassName);
-			
-			$str .= '	/**
+        foreach ($tableList as $table) {
+            $daoClassName = $this->getDaoNameFromTableName($table);
+            $daoInstanceName = self::toVariableName($daoClassName);
+
+            $str .= '	/**
 	 * @var '.$daoClassName.'
 	 */
 	private $'.$daoInstanceName.';
@@ -753,157 +758,179 @@ class $daoFactoryClassName
 	}
 	
 ';
-		}
-		
-		
-		$str .= '
+        }
+
+        $str .= '
 }
 ?>';
 
-        $possibleFileNames = $classNameMapper->getPossibleFileNames($daoNamespace."\\".$daoFactoryClassName);
+        $possibleFileNames = $classNameMapper->getPossibleFileNames($daoNamespace.'\\'.$daoFactoryClassName);
         if (!$possibleFileNames) {
-            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace."\\".$daoFactoryClassName.'" is not autoloadable.');
+            throw new TDBMException('Sorry, autoload namespace issue. The class "'.$daoNamespace.'\\'.$daoFactoryClassName.'" is not autoloadable.');
         }
         $possibleFileName = $this->rootPath.$possibleFileNames[0];
 
         $this->ensureDirectoryExist($possibleFileName);
-		file_put_contents($possibleFileName ,$str);
-	}
-	
-	/**
-	 * Transforms the property name in a setter name.
-	 * For instance, phone => getPhone or name => getName
-	 *
-	 * @param string $methodName
-	 * @return string
-	 */
-	public static function getSetterNameForPropertyName($propertyName) {
-		$propName2 = self::toCamelCase($propertyName);
-		return "set".$propName2;
-	}
-	
-	/**
-	 * Transforms the property name in a getter name.
-	 * For instance, phone => getPhone or name => getName
-	 *
-	 * @param string $propertyName
-	 * @return string
-	 */
-	public static function getGetterNameForPropertyName($propertyName) {
-		$propName2 = self::toCamelCase($propertyName);
-		return "get".$propName2;
-	}
+        file_put_contents($possibleFileName, $str);
+    }
 
-	/**
-	 * Transforms the table name constrained by this object into a setter name.
-	 * For instance, users => setUserByUserId or role => setRoleByRoleId
-	 *
-	 * @param $tableName The table that is constrained
-	 * @param $columnName The column used to constrain the table (optional). If omitted, the "By[columnname]" part of the name will be omitted.
-	 * @return string
-	 */
-	public static function getSetterNameForConstrainedObject($tableName, $columnName = null) {
-		$getter = self::toSingular(self::toCamelCase($tableName));
-		if ($columnName) {
-			$getter .= 'By'.self::toCamelCase($columnName);
-		}
-		return "set".$getter;
-	}
-	
-	/**
-	 * Transforms the table name constrained by this object into a getter name.
-	 * For instance, users => getUserByUserId or role => getRoleByRoleId
-	 *
-	 * @param $tableName The table that is constrained
-	 * @param $columnName The column used to constrain the table (optional). If omitted, the "By[columnname]" part of the name will be omitted.
-	 * @return string
-	 */
-	public static function getGetterNameForConstrainedObject($tableName, $columnName = null) {
-		$getter = self::toSingular(self::toCamelCase($tableName));
-		if ($columnName) {
-			$getter .= 'By'.self::toCamelCase($columnName);
-		}
-		return "get".$getter;
-	}
-	
-	/**
-	 * Transforms a string to camelCase (except the first letter will be uppercase too).
-	 * Underscores and spaces are removed and the first letter after the underscore is uppercased.
-	 * 
-	 * @param $str string
-	 * @return string
-	 */
-	public static function toCamelCase($str) {
-		$str = strtoupper(substr($str,0,1)).substr($str,1);
-		while (true) {
-			if (strpos($str, "_") === false && strpos($str, " ") === false)
-				break;
-				
-			$pos = strpos($str, "_");
-			if ($pos === false) {
-				$pos = strpos($str, " ");
-			}
-			$before = substr($str,0,$pos);
-			$after = substr($str,$pos+1);
-			$str = $before.strtoupper(substr($after,0,1)).substr($after,1);
-		}
-		return $str;
-	}
-	
-	/**
-	 * Tries to put string to the singular form (if it is plural).
-	 * Obviously, this can't be perfect, be we do the best we can.
-	 * 
-	 * @param $str string
-	 * @return string
-	 */
-	public static function toSingular($str) {
-		// First, ignore "ss" words (like access).
-		if (strpos($str, "ss", strlen($str)-2) !== false) {
-			return $str;
-		}
-		
-		// Now, let's see if the string ends with s:
-		if (strpos($str, "s", strlen($str)-1) !== false) {
-			// Yes? Let's remove the s.
-			return substr($str, 0, strlen($str)-1);
-		}
-		return $str;
-	}
-	
-	/**
-	 * Put the first letter of the string in lower case.
-	 * Very useful to transform a class name into a variable name.
-	 * 
-	 * @param $str string
-	 * @return string
-	 */
-	public static function toVariableName($str) {
-		return strtolower(substr($str, 0, 1)).substr($str, 1);
-	}
+    /**
+     * Transforms the property name in a setter name.
+     * For instance, phone => getPhone or name => getName.
+     *
+     * @param string $methodName
+     *
+     * @return string
+     */
+    public static function getSetterNameForPropertyName($propertyName)
+    {
+        $propName2 = self::toCamelCase($propertyName);
+
+        return 'set'.$propName2;
+    }
+
+    /**
+     * Transforms the property name in a getter name.
+     * For instance, phone => getPhone or name => getName.
+     *
+     * @param string $propertyName
+     *
+     * @return string
+     */
+    public static function getGetterNameForPropertyName($propertyName)
+    {
+        $propName2 = self::toCamelCase($propertyName);
+
+        return 'get'.$propName2;
+    }
+
+    /**
+     * Transforms the table name constrained by this object into a setter name.
+     * For instance, users => setUserByUserId or role => setRoleByRoleId.
+     *
+     * @param $tableName The table that is constrained
+     * @param $columnName The column used to constrain the table (optional). If omitted, the "By[columnname]" part of the name will be omitted.
+     *
+     * @return string
+     */
+    public static function getSetterNameForConstrainedObject($tableName, $columnName = null)
+    {
+        $getter = self::toSingular(self::toCamelCase($tableName));
+        if ($columnName) {
+            $getter .= 'By'.self::toCamelCase($columnName);
+        }
+
+        return 'set'.$getter;
+    }
+
+    /**
+     * Transforms the table name constrained by this object into a getter name.
+     * For instance, users => getUserByUserId or role => getRoleByRoleId.
+     *
+     * @param $tableName The table that is constrained
+     * @param $columnName The column used to constrain the table (optional). If omitted, the "By[columnname]" part of the name will be omitted.
+     *
+     * @return string
+     */
+    public static function getGetterNameForConstrainedObject($tableName, $columnName = null)
+    {
+        $getter = self::toSingular(self::toCamelCase($tableName));
+        if ($columnName) {
+            $getter .= 'By'.self::toCamelCase($columnName);
+        }
+
+        return 'get'.$getter;
+    }
+
+    /**
+     * Transforms a string to camelCase (except the first letter will be uppercase too).
+     * Underscores and spaces are removed and the first letter after the underscore is uppercased.
+     *
+     * @param $str string
+     *
+     * @return string
+     */
+    public static function toCamelCase($str)
+    {
+        $str = strtoupper(substr($str, 0, 1)).substr($str, 1);
+        while (true) {
+            if (strpos($str, '_') === false && strpos($str, ' ') === false) {
+                break;
+            }
+
+            $pos = strpos($str, '_');
+            if ($pos === false) {
+                $pos = strpos($str, ' ');
+            }
+            $before = substr($str, 0, $pos);
+            $after = substr($str, $pos + 1);
+            $str = $before.strtoupper(substr($after, 0, 1)).substr($after, 1);
+        }
+
+        return $str;
+    }
+
+    /**
+     * Tries to put string to the singular form (if it is plural).
+     * Obviously, this can't be perfect, be we do the best we can.
+     *
+     * @param $str string
+     *
+     * @return string
+     */
+    public static function toSingular($str)
+    {
+        // First, ignore "ss" words (like access).
+        if (strpos($str, 'ss', strlen($str) - 2) !== false) {
+            return $str;
+        }
+
+        // Now, let's see if the string ends with s:
+        if (strpos($str, 's', strlen($str) - 1) !== false) {
+            // Yes? Let's remove the s.
+            return substr($str, 0, strlen($str) - 1);
+        }
+
+        return $str;
+    }
+
+    /**
+     * Put the first letter of the string in lower case.
+     * Very useful to transform a class name into a variable name.
+     *
+     * @param $str string
+     *
+     * @return string
+     */
+    public static function toVariableName($str)
+    {
+        return strtolower(substr($str, 0, 1)).substr($str, 1);
+    }
 
     /**
      * Ensures the file passed in parameter can be written in its directory.
+     *
      * @param string $fileName
      */
-    private function ensureDirectoryExist($fileName) {
+    private function ensureDirectoryExist($fileName)
+    {
         $dirName = dirname($fileName);
         if (!file_exists($dirName)) {
             $old = umask(0);
             $result = mkdir($dirName, 0775, true);
             umask($old);
             if ($result == false) {
-                echo "Unable to create directory: ".$dirName.".";
+                echo 'Unable to create directory: '.$dirName.'.';
                 exit;
             }
         }
     }
 
-	/**
-	 * @param string $rootPath
-	 */
-	public function setRootPath($rootPath)
-	{
-		$this->rootPath = $rootPath;
-	}
+    /**
+     * @param string $rootPath
+     */
+    public function setRootPath($rootPath)
+    {
+        $this->rootPath = $rootPath;
+    }
 }
